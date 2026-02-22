@@ -5,8 +5,8 @@
         <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
         <OutputType>WinExe</OutputType>
         <ApplicationIcon>Assets\Reaper.ico</ApplicationIcon>
-        <SuppressXamlWarnings>WMC1509</SuppressXamlWarnings>
-        <XamlLocalAssembly>$(IntermediateOutputPath)intermediatexaml\\$(AssemblyName).dll</XamlLocalAssembly>
+        <SuppressXamlWarnings>1509</SuppressXamlWarnings>
+        <XamlLocalAssembly>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)intermediatexaml\$(AssemblyName).dll</XamlLocalAssembly>
 
         <!-- WinUI 3 -->
         <UseWinUI>true</UseWinUI>

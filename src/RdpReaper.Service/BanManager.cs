@@ -84,6 +84,63 @@ public sealed class BanManager
         return true;
     }
 
+    public async Task<bool> ManualBanIpAsync(string ip, string reason, TimeSpan duration, CancellationToken cancellationToken)
+    {
+        if (IsBanned(ip))
+        {
+            return false;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var ban = new Ban
+        {
+            BanType = "Ip",
+            Key = ip,
+            CreatedAt = now,
+            ExpiresAt = duration == TimeSpan.Zero ? null : now.Add(duration),
+            Permanent = duration == TimeSpan.Zero,
+            Reason = reason,
+            SourcePolicy = "Manual",
+            LastSeenAt = now
+        };
+
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        db.Bans.Add(ban);
+        await db.SaveChangesAsync(cancellationToken);
+
+        _activeBans.TryAdd(ip, ban);
+        _statusState.SetActiveBans(_activeBans.Count);
+        _firewallManager.AddBlockedIp(ip);
+
+        _logger.LogInformation("Manually banned IP {ip} for {duration}.", ip, duration);
+        return true;
+    }
+
+    public async Task<bool> UnbanIpAsync(string ip, CancellationToken cancellationToken)
+    {
+        if (!_activeBans.TryRemove(ip, out _))
+        {
+            return false;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var ban = await db.Bans
+            .OrderByDescending(b => b.BanId)
+            .FirstOrDefaultAsync(b => b.Key == ip && (b.ExpiresAt == null || b.ExpiresAt > now), cancellationToken);
+        if (ban != null)
+        {
+            ban.ExpiresAt = now;
+            ban.Permanent = false;
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
+        _statusState.SetActiveBans(_activeBans.Count);
+        _firewallManager.RemoveBlockedIp(ip);
+        _logger.LogInformation("Unbanned IP {ip}.", ip);
+        return true;
+    }
+
     public IReadOnlyCollection<Ban> GetActiveBans()
     {
         return _activeBans.Values.ToArray();

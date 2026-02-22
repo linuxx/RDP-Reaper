@@ -1,4 +1,7 @@
+using System.Runtime.InteropServices;
+using System.Security.Principal;
 using Microsoft.UI.Xaml.Navigation;
+using RdpReaper.Gui.Views;
 
 namespace RdpReaper.Gui
 {
@@ -25,6 +28,13 @@ namespace RdpReaper.Gui
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
+            if (!IsAdministrator())
+            {
+                ShowAdminRequiredMessage();
+                Current.Exit();
+                return;
+            }
+
             window ??= new Window();
 
             if (window.Content is not Frame rootFrame)
@@ -34,7 +44,7 @@ namespace RdpReaper.Gui
                 window.Content = rootFrame;
             }
 
-            _ = rootFrame.Navigate(typeof(MainPage), e.Arguments);
+            _ = rootFrame.Navigate(typeof(ShellPage), e.Arguments);
             window.Activate();
         }
 
@@ -47,5 +57,22 @@ namespace RdpReaper.Gui
         {
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
         }
+
+        private static bool IsAdministrator()
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+
+        private static void ShowAdminRequiredMessage()
+        {
+            const string title = "RdpReaper GUI";
+            const string message = "Administrator privileges are required to run the GUI.";
+            MessageBox(IntPtr.Zero, message, title, 0);
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
     }
 }

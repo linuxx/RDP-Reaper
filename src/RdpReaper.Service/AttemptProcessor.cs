@@ -1,5 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
 using RdpReaper.Core.Config;
 using RdpReaper.Core.Data;
 
@@ -45,6 +47,21 @@ public sealed class AttemptProcessor
             return;
         }
 
+        if (IsAllowListed(attempt))
+        {
+            return;
+        }
+
+        if (IsBlockListed(attempt))
+        {
+            await _banManager.ManualBanIpAsync(
+                attempt.Ip,
+                "Block list entry",
+                TimeSpan.FromSeconds(_config.IpBanDurationSeconds),
+                cancellationToken);
+            return;
+        }
+
         var window = TimeSpan.FromSeconds(_config.IpWindowSeconds);
         var count = _counterStore.AddFailure(attempt.Ip, attempt.Time, window);
         if (count >= _config.IpFailureThreshold)
@@ -61,5 +78,27 @@ public sealed class AttemptProcessor
                 _logger.LogWarning("IP {ip} banned after {count} failures.", attempt.Ip, count);
             }
         }
+    }
+
+    private bool IsAllowListed(Attempt attempt)
+    {
+        return Contains(_config.AllowIpList, attempt.Ip) ||
+               Contains(_config.AllowSubnetList, attempt.Subnet);
+    }
+
+    private bool IsBlockListed(Attempt attempt)
+    {
+        return Contains(_config.BlockIpList, attempt.Ip) ||
+               Contains(_config.BlockSubnetList, attempt.Subnet);
+    }
+
+    private static bool Contains(IEnumerable<string> list, string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        return list.Any(entry => string.Equals(entry, value, StringComparison.OrdinalIgnoreCase));
     }
 }

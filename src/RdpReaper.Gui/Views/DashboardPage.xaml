@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Page
+    x:Class="RdpReaper.Gui.Views.DashboardPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Grid Padding="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Spacing="6">
+            <TextBlock FontSize="28" FontWeight="SemiBold" Text="RDP Reaper" />
+            <TextBlock FontSize="14" Text="Local status and control" Opacity="0.7" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Spacing="16" Margin="0,24,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="20" Height="20" />
+                <Button Content="Refresh" Click="OnRefreshClicked" />
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+                <TextBlock FontSize="16" Text="Service" Opacity="0.6" />
+                <TextBlock FontSize="20" Text="{x:Bind ViewModel.ServiceText, Mode=OneWay}" />
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+                <TextBlock FontSize="16" Text="Last Event (UTC)" Opacity="0.6" />
+                <TextBlock FontSize="20" Text="{x:Bind ViewModel.LastEventText, Mode=OneWay}" />
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+                <TextBlock FontSize="16" Text="Active Bans" Opacity="0.6" />
+                <TextBlock FontSize="20" Text="{x:Bind ViewModel.ActiveBansText, Mode=OneWay}" />
+            </StackPanel>
+
+            <TextBlock
+                Foreground="DarkRed"
+                Text="{x:Bind ViewModel.ErrorText, Mode=OneWay}"
+                TextWrapping="Wrap"
+                Visibility="{x:Bind ViewModel.ErrorVisibility, Mode=OneWay}" />
+        </StackPanel>
+    </Grid>
+</Page>

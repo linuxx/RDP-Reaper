@@ -43,6 +43,14 @@ public sealed class FirewallManager
         }
     }
 
+    public void RemoveBlockedIp(string ip)
+    {
+        if (_blockedIps.TryRemove(ip, out _))
+        {
+            Interlocked.Exchange(ref _dirty, 1);
+        }
+    }
+
     private async Task SyncLoopAsync(CancellationToken cancellationToken)
     {
         var timer = new PeriodicTimer(_syncInterval);

@@ -51,5 +51,24 @@ public static class ConfigStore
         {
             config.DatabasePath = AppPaths.DatabasePath;
         }
+
+        config.AllowIpList = NormalizeList(config.AllowIpList);
+        config.BlockIpList = NormalizeList(config.BlockIpList);
+        config.AllowSubnetList = NormalizeList(config.AllowSubnetList);
+        config.BlockSubnetList = NormalizeList(config.BlockSubnetList);
+    }
+
+    private static List<string> NormalizeList(List<string>? list)
+    {
+        if (list == null || list.Count == 0)
+        {
+            return new List<string>();
+        }
+
+        return list
+            .Select(entry => entry.Trim())
+            .Where(entry => !string.IsNullOrWhiteSpace(entry))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 }

@@ -15,4 +15,9 @@ public sealed class AppConfig
     public int IpBanDurationSeconds { get; set; } = 3600;
 
     public bool FirewallEnabled { get; set; } = true;
+
+    public List<string> AllowIpList { get; set; } = new();
+    public List<string> BlockIpList { get; set; } = new();
+    public List<string> AllowSubnetList { get; set; } = new();
+    public List<string> BlockSubnetList { get; set; } = new();
 }

@@ -167,11 +167,22 @@ public sealed class ApiHost : IHostedService
                 IpFailureThreshold = current.IpFailureThreshold,
                 IpWindowSeconds = current.IpWindowSeconds,
                 IpBanDurationSeconds = current.IpBanDurationSeconds,
+                SubnetFailureThreshold = current.SubnetFailureThreshold,
+                SubnetWindowSeconds = current.SubnetWindowSeconds,
+                SubnetBanDurationSeconds = current.SubnetBanDurationSeconds,
+                SubnetMinUniqueIps = current.SubnetMinUniqueIps,
                 FirewallEnabled = current.FirewallEnabled,
                 AllowIpList = current.AllowIpList,
                 BlockIpList = current.BlockIpList,
                 AllowSubnetList = current.AllowSubnetList,
-                BlockSubnetList = current.BlockSubnetList
+                BlockSubnetList = current.BlockSubnetList,
+                AllowCountryList = current.AllowCountryList,
+                BlockCountryList = current.BlockCountryList,
+                EnrichmentEnabled = current.EnrichmentEnabled,
+                IpWhoisApiKey = current.IpWhoisApiKey,
+                EnrichmentMaxPerMinute = current.EnrichmentMaxPerMinute,
+                CacheTtlDays = current.CacheTtlDays,
+                MonitoredLogonTypes = current.MonitoredLogonTypes
             });
         });
 
@@ -181,11 +192,22 @@ public sealed class ApiHost : IHostedService
             current.IpFailureThreshold = update.IpFailureThreshold;
             current.IpWindowSeconds = update.IpWindowSeconds;
             current.IpBanDurationSeconds = update.IpBanDurationSeconds;
+            current.SubnetFailureThreshold = update.SubnetFailureThreshold;
+            current.SubnetWindowSeconds = update.SubnetWindowSeconds;
+            current.SubnetBanDurationSeconds = update.SubnetBanDurationSeconds;
+            current.SubnetMinUniqueIps = update.SubnetMinUniqueIps;
             current.FirewallEnabled = update.FirewallEnabled;
             current.AllowIpList = update.AllowIpList ?? new List<string>();
             current.BlockIpList = update.BlockIpList ?? new List<string>();
             current.AllowSubnetList = update.AllowSubnetList ?? new List<string>();
             current.BlockSubnetList = update.BlockSubnetList ?? new List<string>();
+            current.AllowCountryList = update.AllowCountryList ?? new List<string>();
+            current.BlockCountryList = update.BlockCountryList ?? new List<string>();
+            current.EnrichmentEnabled = update.EnrichmentEnabled;
+            current.IpWhoisApiKey = update.IpWhoisApiKey ?? string.Empty;
+            current.EnrichmentMaxPerMinute = update.EnrichmentMaxPerMinute;
+            current.CacheTtlDays = update.CacheTtlDays;
+            current.MonitoredLogonTypes = update.MonitoredLogonTypes ?? new List<int>();
 
             var normalized = NormalizePolicy(current);
             ConfigStore.Save(normalized);
@@ -195,11 +217,22 @@ public sealed class ApiHost : IHostedService
                 IpFailureThreshold = normalized.IpFailureThreshold,
                 IpWindowSeconds = normalized.IpWindowSeconds,
                 IpBanDurationSeconds = normalized.IpBanDurationSeconds,
+                SubnetFailureThreshold = normalized.SubnetFailureThreshold,
+                SubnetWindowSeconds = normalized.SubnetWindowSeconds,
+                SubnetBanDurationSeconds = normalized.SubnetBanDurationSeconds,
+                SubnetMinUniqueIps = normalized.SubnetMinUniqueIps,
                 FirewallEnabled = normalized.FirewallEnabled,
                 AllowIpList = normalized.AllowIpList,
                 BlockIpList = normalized.BlockIpList,
                 AllowSubnetList = normalized.AllowSubnetList,
-                BlockSubnetList = normalized.BlockSubnetList
+                BlockSubnetList = normalized.BlockSubnetList,
+                AllowCountryList = normalized.AllowCountryList,
+                BlockCountryList = normalized.BlockCountryList,
+                EnrichmentEnabled = normalized.EnrichmentEnabled,
+                IpWhoisApiKey = normalized.IpWhoisApiKey,
+                EnrichmentMaxPerMinute = normalized.EnrichmentMaxPerMinute,
+                CacheTtlDays = normalized.CacheTtlDays,
+                MonitoredLogonTypes = normalized.MonitoredLogonTypes
             });
         });
 
@@ -208,6 +241,53 @@ public sealed class ApiHost : IHostedService
             var take = GetTake(request, 200);
             var logs = EventLogReader.ReadRecent("RdpReaper", take);
             return Results.Ok(logs);
+        });
+
+        app.MapGet("/api/stats", async (CancellationToken cancellationToken) =>
+        {
+            var now = DateTimeOffset.UtcNow;
+            var hourCutoff = now.AddHours(-1);
+            var dayCutoff = now.AddDays(-1);
+
+            await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var lastHour = await db.Attempts.AsNoTracking()
+                .Where(a => a.Time >= hourCutoff)
+                .CountAsync(cancellationToken);
+            var lastDay = await db.Attempts.AsNoTracking()
+                .Where(a => a.Time >= dayCutoff)
+                .CountAsync(cancellationToken);
+            var uniqueIps = await db.Attempts.AsNoTracking()
+                .Where(a => a.Time >= dayCutoff)
+                .Select(a => a.Ip)
+                .Distinct()
+                .CountAsync(cancellationToken);
+
+            return Results.Ok(new
+            {
+                lastHourAttempts = lastHour,
+                lastDayAttempts = lastDay,
+                lastDayUniqueIps = uniqueIps,
+                activeBans = _statusState.GetActiveBans()
+            });
+        });
+
+        app.MapGet("/api/geo/recent", async (HttpRequest request, CancellationToken cancellationToken) =>
+        {
+            var take = GetTake(request, 50);
+            await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+            var recentIps = await db.Attempts.AsNoTracking()
+                .OrderByDescending(a => a.AttemptId)
+                .Select(a => a.Ip)
+                .Distinct()
+                .Take(take)
+                .ToListAsync(cancellationToken);
+
+            var geo = await db.GeoCache.AsNoTracking()
+                .Where(g => recentIps.Contains(g.Ip) && g.Lat.HasValue && g.Lon.HasValue)
+                .ToListAsync(cancellationToken);
+
+            return Results.Ok(geo);
         });
 
         _app = app;
@@ -262,6 +342,12 @@ public sealed class ApiHost : IHostedService
         config.IpFailureThreshold = Math.Clamp(config.IpFailureThreshold, 1, 1000);
         config.IpWindowSeconds = Math.Clamp(config.IpWindowSeconds, 10, 3600);
         config.IpBanDurationSeconds = Math.Clamp(config.IpBanDurationSeconds, 60, 604800);
+        config.SubnetFailureThreshold = Math.Clamp(config.SubnetFailureThreshold, 1, 5000);
+        config.SubnetWindowSeconds = Math.Clamp(config.SubnetWindowSeconds, 30, 10800);
+        config.SubnetBanDurationSeconds = Math.Clamp(config.SubnetBanDurationSeconds, 60, 604800);
+        config.SubnetMinUniqueIps = Math.Clamp(config.SubnetMinUniqueIps, 1, 255);
+        config.EnrichmentMaxPerMinute = Math.Clamp(config.EnrichmentMaxPerMinute, 1, 600);
+        config.CacheTtlDays = Math.Clamp(config.CacheTtlDays, 1, 365);
         return config;
     }
 
@@ -270,11 +356,22 @@ public sealed class ApiHost : IHostedService
         public int IpFailureThreshold { get; set; }
         public int IpWindowSeconds { get; set; }
         public int IpBanDurationSeconds { get; set; }
+        public int SubnetFailureThreshold { get; set; }
+        public int SubnetWindowSeconds { get; set; }
+        public int SubnetBanDurationSeconds { get; set; }
+        public int SubnetMinUniqueIps { get; set; }
         public bool FirewallEnabled { get; set; }
         public List<string>? AllowIpList { get; set; }
         public List<string>? BlockIpList { get; set; }
         public List<string>? AllowSubnetList { get; set; }
         public List<string>? BlockSubnetList { get; set; }
+        public List<string>? AllowCountryList { get; set; }
+        public List<string>? BlockCountryList { get; set; }
+        public bool EnrichmentEnabled { get; set; }
+        public string? IpWhoisApiKey { get; set; }
+        public int EnrichmentMaxPerMinute { get; set; }
+        public int CacheTtlDays { get; set; }
+        public List<int>? MonitoredLogonTypes { get; set; }
     }
 
     private sealed class PolicyDto
@@ -282,11 +379,22 @@ public sealed class ApiHost : IHostedService
         public int IpFailureThreshold { get; set; }
         public int IpWindowSeconds { get; set; }
         public int IpBanDurationSeconds { get; set; }
+        public int SubnetFailureThreshold { get; set; }
+        public int SubnetWindowSeconds { get; set; }
+        public int SubnetBanDurationSeconds { get; set; }
+        public int SubnetMinUniqueIps { get; set; }
         public bool FirewallEnabled { get; set; }
         public List<string> AllowIpList { get; set; } = new();
         public List<string> BlockIpList { get; set; } = new();
         public List<string> AllowSubnetList { get; set; } = new();
         public List<string> BlockSubnetList { get; set; } = new();
+        public List<string> AllowCountryList { get; set; } = new();
+        public List<string> BlockCountryList { get; set; } = new();
+        public bool EnrichmentEnabled { get; set; }
+        public string IpWhoisApiKey { get; set; } = string.Empty;
+        public int EnrichmentMaxPerMinute { get; set; }
+        public int CacheTtlDays { get; set; }
+        public List<int> MonitoredLogonTypes { get; set; } = new();
     }
 
     private sealed class BanRequest

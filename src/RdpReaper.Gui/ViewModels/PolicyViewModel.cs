@@ -15,11 +15,23 @@ public sealed class PolicyViewModel : INotifyPropertyChanged
     private string _ipFailureThreshold = string.Empty;
     private string _ipWindowSeconds = string.Empty;
     private string _ipBanDurationSeconds = string.Empty;
+    private string _subnetFailureThreshold = string.Empty;
+    private string _subnetWindowSeconds = string.Empty;
+    private string _subnetBanDurationSeconds = string.Empty;
+    private string _subnetMinUniqueIps = string.Empty;
     private bool _firewallEnabled = true;
     private string _allowIpList = string.Empty;
     private string _blockIpList = string.Empty;
     private string _allowSubnetList = string.Empty;
     private string _blockSubnetList = string.Empty;
+    private string _allowCountryList = string.Empty;
+    private string _blockCountryList = string.Empty;
+    private bool _enrichmentEnabled = true;
+    private string _ipWhoisApiKey = string.Empty;
+    private string _enrichmentMaxPerMinute = string.Empty;
+    private string _cacheTtlDays = string.Empty;
+    private bool _monitorLogonType3 = true;
+    private bool _monitorLogonType10 = true;
     private string _errorText = string.Empty;
     private bool _isBusy;
 
@@ -39,6 +51,30 @@ public sealed class PolicyViewModel : INotifyPropertyChanged
     {
         get => _ipBanDurationSeconds;
         set => SetField(ref _ipBanDurationSeconds, value);
+    }
+
+    public string SubnetFailureThreshold
+    {
+        get => _subnetFailureThreshold;
+        set => SetField(ref _subnetFailureThreshold, value);
+    }
+
+    public string SubnetWindowSeconds
+    {
+        get => _subnetWindowSeconds;
+        set => SetField(ref _subnetWindowSeconds, value);
+    }
+
+    public string SubnetBanDurationSeconds
+    {
+        get => _subnetBanDurationSeconds;
+        set => SetField(ref _subnetBanDurationSeconds, value);
+    }
+
+    public string SubnetMinUniqueIps
+    {
+        get => _subnetMinUniqueIps;
+        set => SetField(ref _subnetMinUniqueIps, value);
     }
 
     public bool FirewallEnabled
@@ -69,6 +105,54 @@ public sealed class PolicyViewModel : INotifyPropertyChanged
     {
         get => _blockSubnetList;
         set => SetField(ref _blockSubnetList, value);
+    }
+
+    public string AllowCountryList
+    {
+        get => _allowCountryList;
+        set => SetField(ref _allowCountryList, value);
+    }
+
+    public string BlockCountryList
+    {
+        get => _blockCountryList;
+        set => SetField(ref _blockCountryList, value);
+    }
+
+    public bool EnrichmentEnabled
+    {
+        get => _enrichmentEnabled;
+        set => SetField(ref _enrichmentEnabled, value);
+    }
+
+    public string IpWhoisApiKey
+    {
+        get => _ipWhoisApiKey;
+        set => SetField(ref _ipWhoisApiKey, value);
+    }
+
+    public string EnrichmentMaxPerMinute
+    {
+        get => _enrichmentMaxPerMinute;
+        set => SetField(ref _enrichmentMaxPerMinute, value);
+    }
+
+    public string CacheTtlDays
+    {
+        get => _cacheTtlDays;
+        set => SetField(ref _cacheTtlDays, value);
+    }
+
+    public bool MonitorLogonType3
+    {
+        get => _monitorLogonType3;
+        set => SetField(ref _monitorLogonType3, value);
+    }
+
+    public bool MonitorLogonType10
+    {
+        get => _monitorLogonType10;
+        set => SetField(ref _monitorLogonType10, value);
     }
 
     public string ErrorText
@@ -113,11 +197,23 @@ public sealed class PolicyViewModel : INotifyPropertyChanged
             IpFailureThreshold = policy.IpFailureThreshold.ToString();
             IpWindowSeconds = policy.IpWindowSeconds.ToString();
             IpBanDurationSeconds = policy.IpBanDurationSeconds.ToString();
+            SubnetFailureThreshold = policy.SubnetFailureThreshold.ToString();
+            SubnetWindowSeconds = policy.SubnetWindowSeconds.ToString();
+            SubnetBanDurationSeconds = policy.SubnetBanDurationSeconds.ToString();
+            SubnetMinUniqueIps = policy.SubnetMinUniqueIps.ToString();
             FirewallEnabled = policy.FirewallEnabled;
             AllowIpList = string.Join(Environment.NewLine, policy.AllowIpList);
             BlockIpList = string.Join(Environment.NewLine, policy.BlockIpList);
             AllowSubnetList = string.Join(Environment.NewLine, policy.AllowSubnetList);
             BlockSubnetList = string.Join(Environment.NewLine, policy.BlockSubnetList);
+            AllowCountryList = string.Join(Environment.NewLine, policy.AllowCountryList);
+            BlockCountryList = string.Join(Environment.NewLine, policy.BlockCountryList);
+            EnrichmentEnabled = policy.EnrichmentEnabled;
+            IpWhoisApiKey = policy.IpWhoisApiKey;
+            EnrichmentMaxPerMinute = policy.EnrichmentMaxPerMinute.ToString();
+            CacheTtlDays = policy.CacheTtlDays.ToString();
+            MonitorLogonType3 = policy.MonitoredLogonTypes.Contains(3);
+            MonitorLogonType10 = policy.MonitoredLogonTypes.Contains(10);
         }
         catch (System.Exception ex)
         {
@@ -138,7 +234,13 @@ public sealed class PolicyViewModel : INotifyPropertyChanged
         {
             if (!int.TryParse(IpFailureThreshold, out var failureThreshold) ||
                 !int.TryParse(IpWindowSeconds, out var windowSeconds) ||
-                !int.TryParse(IpBanDurationSeconds, out var banSeconds))
+                !int.TryParse(IpBanDurationSeconds, out var banSeconds) ||
+                !int.TryParse(SubnetFailureThreshold, out var subnetFailureThreshold) ||
+                !int.TryParse(SubnetWindowSeconds, out var subnetWindowSeconds) ||
+                !int.TryParse(SubnetBanDurationSeconds, out var subnetBanSeconds) ||
+                !int.TryParse(SubnetMinUniqueIps, out var subnetMinUniqueIps) ||
+                !int.TryParse(EnrichmentMaxPerMinute, out var maxPerMinute) ||
+                !int.TryParse(CacheTtlDays, out var cacheTtlDays))
             {
                 ErrorText = "Enter valid numeric values for policy thresholds.";
                 return;
@@ -158,21 +260,44 @@ public sealed class PolicyViewModel : INotifyPropertyChanged
                 IpFailureThreshold = failureThreshold,
                 IpWindowSeconds = windowSeconds,
                 IpBanDurationSeconds = banSeconds,
+                SubnetFailureThreshold = subnetFailureThreshold,
+                SubnetWindowSeconds = subnetWindowSeconds,
+                SubnetBanDurationSeconds = subnetBanSeconds,
+                SubnetMinUniqueIps = subnetMinUniqueIps,
                 FirewallEnabled = FirewallEnabled,
                 AllowIpList = SplitLines(AllowIpList),
                 BlockIpList = SplitLines(BlockIpList),
                 AllowSubnetList = SplitLines(AllowSubnetList),
-                BlockSubnetList = SplitLines(BlockSubnetList)
+                BlockSubnetList = SplitLines(BlockSubnetList),
+                AllowCountryList = SplitLines(AllowCountryList),
+                BlockCountryList = SplitLines(BlockCountryList),
+                EnrichmentEnabled = EnrichmentEnabled,
+                IpWhoisApiKey = IpWhoisApiKey,
+                EnrichmentMaxPerMinute = maxPerMinute,
+                CacheTtlDays = cacheTtlDays,
+                MonitoredLogonTypes = BuildLogonTypeList()
             });
 
             IpFailureThreshold = updated.IpFailureThreshold.ToString();
             IpWindowSeconds = updated.IpWindowSeconds.ToString();
             IpBanDurationSeconds = updated.IpBanDurationSeconds.ToString();
+            SubnetFailureThreshold = updated.SubnetFailureThreshold.ToString();
+            SubnetWindowSeconds = updated.SubnetWindowSeconds.ToString();
+            SubnetBanDurationSeconds = updated.SubnetBanDurationSeconds.ToString();
+            SubnetMinUniqueIps = updated.SubnetMinUniqueIps.ToString();
             FirewallEnabled = updated.FirewallEnabled;
             AllowIpList = string.Join(Environment.NewLine, updated.AllowIpList);
             BlockIpList = string.Join(Environment.NewLine, updated.BlockIpList);
             AllowSubnetList = string.Join(Environment.NewLine, updated.AllowSubnetList);
             BlockSubnetList = string.Join(Environment.NewLine, updated.BlockSubnetList);
+            AllowCountryList = string.Join(Environment.NewLine, updated.AllowCountryList);
+            BlockCountryList = string.Join(Environment.NewLine, updated.BlockCountryList);
+            EnrichmentEnabled = updated.EnrichmentEnabled;
+            IpWhoisApiKey = updated.IpWhoisApiKey;
+            EnrichmentMaxPerMinute = updated.EnrichmentMaxPerMinute.ToString();
+            CacheTtlDays = updated.CacheTtlDays.ToString();
+            MonitorLogonType3 = updated.MonitoredLogonTypes.Contains(3);
+            MonitorLogonType10 = updated.MonitoredLogonTypes.Contains(10);
         }
         catch (System.Exception ex)
         {
@@ -191,6 +316,20 @@ public sealed class PolicyViewModel : INotifyPropertyChanged
             .Select(line => line.Trim())
             .Where(line => !string.IsNullOrWhiteSpace(line))
             .ToList();
+    }
+
+    private List<int> BuildLogonTypeList()
+    {
+        var list = new List<int>();
+        if (MonitorLogonType3)
+        {
+            list.Add(3);
+        }
+        if (MonitorLogonType10)
+        {
+            list.Add(10);
+        }
+        return list;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

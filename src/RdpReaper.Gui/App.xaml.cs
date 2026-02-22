@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.IO;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Navigation;
 using RdpReaper.Gui.Views;
 
@@ -44,6 +46,9 @@ namespace RdpReaper.Gui
                 window.Content = rootFrame;
             }
 
+            window.Title = "RDP Reaper";
+            TrySetWindowIcon(window);
+
             _ = rootFrame.Navigate(typeof(ShellPage), e.Arguments);
             window.Activate();
         }
@@ -70,6 +75,22 @@ namespace RdpReaper.Gui
             const string title = "RdpReaper GUI";
             const string message = "Administrator privileges are required to run the GUI.";
             MessageBox(IntPtr.Zero, message, title, 0);
+        }
+
+        private static void TrySetWindowIcon(Window window)
+        {
+            try
+            {
+                var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Reaper.ico");
+                if (File.Exists(iconPath))
+                {
+                    window.AppWindow.SetIcon(iconPath);
+                }
+            }
+            catch
+            {
+                // Best-effort only.
+            }
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]

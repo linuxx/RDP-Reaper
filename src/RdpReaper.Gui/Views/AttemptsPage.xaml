@@ -7,33 +7,59 @@
     xmlns:local="using:RdpReaper.Gui.ViewModels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <Grid Padding="24">
+    <Grid Padding="28" Background="{StaticResource AppBackgroundBrush}" FontFamily="{StaticResource BodyFontFamily}">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Spacing="12">
-            <TextBlock FontSize="24" FontWeight="SemiBold" Text="Attempts" />
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="18" Height="18" />
-                <Button Content="Refresh" Click="OnRefreshClicked" />
-                <TextBox Width="160" PlaceholderText="IP" Text="{x:Bind ViewModel.FilterIp, Mode=TwoWay}" />
-                <TextBox Width="160" PlaceholderText="Username" Text="{x:Bind ViewModel.FilterUsername, Mode=TwoWay}" />
-                <ComboBox Width="140" SelectedIndex="{x:Bind ViewModel.OutcomeIndex, Mode=TwoWay}">
-                    <ComboBoxItem Content="Any" />
-                    <ComboBoxItem Content="Failure" />
-                    <ComboBoxItem Content="Success" />
-                </ComboBox>
-                <CalendarDatePicker Header="From" Date="{x:Bind ViewModel.FromDate, Mode=TwoWay}" />
-                <CalendarDatePicker Header="To" Date="{x:Bind ViewModel.ToDate, Mode=TwoWay}" />
-                <Button Content="Prev" Click="OnPrevClicked" />
-                <TextBlock VerticalAlignment="Center" Text="{x:Bind ViewModel.PageText, Mode=OneWay}" />
-                <Button Content="Next" Click="OnNextClicked" />
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource PageTitle}" Text="Attempts" />
+                <TextBlock Style="{StaticResource SubtitleText}" Text="Inbound logon pressure, filterable and actionable." />
             </StackPanel>
-        </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="18" Height="18" />
+                <Button Content="Refresh" Click="OnRefreshClicked" Style="{StaticResource GhostButton}" />
+                <Button Content="Prev" Click="OnPrevClicked" Style="{StaticResource ToolbarButton}" />
+                <TextBlock VerticalAlignment="Center" Text="{x:Bind ViewModel.PageText, Mode=OneWay}" />
+                <Button Content="Next" Click="OnNextClicked" Style="{StaticResource ToolbarButton}" />
+            </StackPanel>
+        </Grid>
 
-        <Grid Grid.Row="1" Margin="0,16,0,0">
+        <Border Grid.Row="1" Margin="0,16,0,0" Style="{StaticResource Card}">
+            <StackPanel Spacing="12">
+                <TextBlock Style="{StaticResource SectionTitle}" Text="Filters" />
+                <Grid ColumnSpacing="12" RowSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="160" />
+                        <ColumnDefinition Width="200" />
+                        <ColumnDefinition Width="200" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBox Grid.Column="0" PlaceholderText="IP address" Text="{x:Bind ViewModel.FilterIp, Mode=TwoWay}" />
+                    <TextBox Grid.Column="1" PlaceholderText="Username" Text="{x:Bind ViewModel.FilterUsername, Mode=TwoWay}" />
+                    <ComboBox Grid.Column="2" SelectedIndex="{x:Bind ViewModel.OutcomeIndex, Mode=TwoWay}">
+                        <ComboBoxItem Content="Any" />
+                        <ComboBoxItem Content="Failure" />
+                        <ComboBoxItem Content="Success" />
+                    </ComboBox>
+                    <CalendarDatePicker Grid.Column="3" Header="From" Date="{x:Bind ViewModel.FromDate, Mode=TwoWay}" />
+                    <CalendarDatePicker Grid.Column="4" Header="To" Date="{x:Bind ViewModel.ToDate, Mode=TwoWay}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="0,16,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -41,10 +67,34 @@
 
             <TextBlock
                 Grid.Row="0"
-                Foreground="DarkRed"
+                Foreground="{StaticResource AppAccentSoftBrush}"
                 Text="{x:Bind ViewModel.ErrorText, Mode=OneWay}"
                 TextWrapping="Wrap"
                 Visibility="{x:Bind ViewModel.ErrorVisibility, Mode=OneWay}" />
+
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" ColumnSpacing="12" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="160" />
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource SubtitleText}" Text="Time (UTC)" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource SubtitleText}" Text="IP" />
+                    <TextBlock Grid.Column="2" Style="{StaticResource SubtitleText}" Text="Username" />
+                    <TextBlock Grid.Column="3" Style="{StaticResource SubtitleText}" Text="Outcome" />
+                    <TextBlock Grid.Column="4" Style="{StaticResource SubtitleText}" Text="Status" />
+                    <TextBlock Grid.Column="5" Style="{StaticResource SubtitleText}" Text="Logon" />
+                    <TextBlock Grid.Column="6" Style="{StaticResource SubtitleText}" Text="Event" />
+                </Grid>
 
             <ListView
                 Grid.Row="1"
@@ -52,7 +102,14 @@
                 Margin="0,8,0,0">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="local:AttemptView">
-                        <Grid Padding="8">
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Copy JSON" Click="OnCopyJsonClicked" Tag="{Binding}" />
+                                    <MenuFlyoutItem Text="Ban IP" Click="OnBanIpClicked" Tag="{Binding}" />
+                                </MenuFlyout>
+                            </Grid.ContextFlyout>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="180" />
                                 <ColumnDefinition Width="140" />
@@ -70,9 +127,11 @@
                             <TextBlock Grid.Column="5" Text="{x:Bind LogonType}" />
                             <TextBlock Grid.Column="6" Text="{x:Bind EventId}" />
                         </Grid>
+                        </Border>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
+            </Grid>
         </Grid>
     </Grid>
 </Page>

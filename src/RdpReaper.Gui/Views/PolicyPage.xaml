@@ -6,80 +6,197 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <Grid Padding="24">
+    <Grid Padding="28" Background="{StaticResource AppBackgroundBrush}" FontFamily="{StaticResource BodyFontFamily}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Spacing="12">
-            <TextBlock FontSize="24" FontWeight="SemiBold" Text="Policy" />
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="18" Height="18" />
-                <Button Content="Refresh" Click="OnRefreshClicked" />
-                <Button Content="Save" Click="OnSaveClicked" />
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource PageTitle}" Text="Policy" />
+                <TextBlock Style="{StaticResource SubtitleText}" Text="Tune thresholds, lists, and enrichment behavior." />
             </StackPanel>
-        </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="18" Height="18" />
+                <Button Content="Refresh" Click="OnRefreshClicked" Style="{StaticResource GhostButton}" />
+                <Button Content="Save" Click="OnSaveClicked" Style="{StaticResource PrimaryButton}" />
+            </StackPanel>
+        </Grid>
 
-        <StackPanel Grid.Row="1" Spacing="12" Margin="0,16,0,0">
+        <ScrollViewer Grid.Row="1" Margin="0,16,0,0">
+        <StackPanel Spacing="16">
             <TextBlock
-                Foreground="DarkRed"
+                Foreground="{StaticResource AppAccentSoftBrush}"
                 Text="{x:Bind ViewModel.ErrorText, Mode=OneWay}"
                 TextWrapping="Wrap"
                 Visibility="{x:Bind ViewModel.ErrorVisibility, Mode=OneWay}" />
 
-            <StackPanel Spacing="6">
-                <TextBlock Text="IP Failure Threshold" />
-                <TextBox Text="{x:Bind ViewModel.IpFailureThreshold, Mode=TwoWay}" Width="200" />
-            </StackPanel>
+            <Border Style="{StaticResource Card}">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="IP thresholds" />
+                    <Grid ColumnSpacing="16" RowSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="IP Failure Threshold" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="Failures from a single IP before a ban is applied." />
+                            <TextBox Text="{x:Bind ViewModel.IpFailureThreshold, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <TextBlock Text="IP Window Seconds" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="Time window for counting IP failures." />
+                            <TextBox Text="{x:Bind ViewModel.IpWindowSeconds, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="6">
+                            <TextBlock Text="IP Ban Duration Seconds" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="How long IP bans remain active." />
+                            <TextBox Text="{x:Bind ViewModel.IpBanDurationSeconds, Mode=TwoWay}" />
+                        </StackPanel>
+                    </Grid>
+                    <ToggleSwitch Header="Firewall Enabled" IsOn="{x:Bind ViewModel.FirewallEnabled, Mode=TwoWay}" />
+                </StackPanel>
+            </Border>
 
-            <StackPanel Spacing="6">
-                <TextBlock Text="IP Window Seconds" />
-                <TextBox Text="{x:Bind ViewModel.IpWindowSeconds, Mode=TwoWay}" Width="200" />
-            </StackPanel>
+            <Border Style="{StaticResource Card}">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Subnet thresholds" />
+                    <Grid ColumnSpacing="16" RowSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Subnet Failure Threshold" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="Total failures in a /24 before a subnet ban is applied." />
+                            <TextBox Text="{x:Bind ViewModel.SubnetFailureThreshold, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <TextBlock Text="Subnet Window Seconds" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="Time window for subnet failure counting." />
+                            <TextBox Text="{x:Bind ViewModel.SubnetWindowSeconds, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="6">
+                            <TextBlock Text="Subnet Ban Duration Seconds" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="How long subnet bans remain active." />
+                            <TextBox Text="{x:Bind ViewModel.SubnetBanDurationSeconds, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="3" Spacing="6">
+                            <TextBlock Text="Subnet Min Unique IPs" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="Minimum unique IPs in the subnet window before banning." />
+                            <TextBox Text="{x:Bind ViewModel.SubnetMinUniqueIps, Mode=TwoWay}" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
 
-            <StackPanel Spacing="6">
-                <TextBlock Text="IP Ban Duration Seconds" />
-                <TextBox Text="{x:Bind ViewModel.IpBanDurationSeconds, Mode=TwoWay}" Width="200" />
-            </StackPanel>
+            <Border Style="{StaticResource Card}">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Allow / block lists" />
+                    <Grid ColumnSpacing="16" RowSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Allow IPs (one per line)" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="Always allow these IPs." />
+                            <TextBox Text="{x:Bind ViewModel.AllowIpList, Mode=TwoWay}" AcceptsReturn="True" Height="120" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <TextBlock Text="Block IPs (one per line)" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="Always ban these IPs on sight." />
+                            <TextBox Text="{x:Bind ViewModel.BlockIpList, Mode=TwoWay}" AcceptsReturn="True" Height="120" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Spacing="6">
+                            <TextBlock Text="Allow Subnets (one per line, e.g. 203.0.113.0/24)" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="Always allow these subnets." />
+                            <TextBox Text="{x:Bind ViewModel.AllowSubnetList, Mode=TwoWay}" AcceptsReturn="True" Height="120" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="6">
+                            <TextBlock Text="Block Subnets (one per line, e.g. 203.0.113.0/24)" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="Always ban these subnets on sight." />
+                            <TextBox Text="{x:Bind ViewModel.BlockSubnetList, Mode=TwoWay}" AcceptsReturn="True" Height="120" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
 
-            <ToggleSwitch
-                Header="Firewall Enabled"
-                IsOn="{x:Bind ViewModel.FirewallEnabled, Mode=TwoWay}" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Country policy" />
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Allow Countries (one per line, ISO code)" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="If set, only these countries are allowed." />
+                            <TextBox Text="{x:Bind ViewModel.AllowCountryList, Mode=TwoWay}" AcceptsReturn="True" Height="120" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <TextBlock Text="Block Countries (one per line, ISO code)" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="Always ban these countries when resolved." />
+                            <TextBox Text="{x:Bind ViewModel.BlockCountryList, Mode=TwoWay}" AcceptsReturn="True" Height="120" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
 
-            <TextBlock FontSize="16" FontWeight="SemiBold" Text="Allow / Block Lists" Margin="0,12,0,0" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Geo enrichment" />
+                    <ToggleSwitch Header="Enrichment Enabled" IsOn="{x:Bind ViewModel.EnrichmentEnabled, Mode=TwoWay}" />
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="260" />
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="ipwhois.io API Key (optional)" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="Leave blank for free tier limits." />
+                            <TextBox Text="{x:Bind ViewModel.IpWhoisApiKey, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <TextBlock Text="Max Enrichments Per Minute" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="Rate limit for ipwhois calls." />
+                            <TextBox Text="{x:Bind ViewModel.EnrichmentMaxPerMinute, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="6">
+                            <TextBlock Text="Geo Cache TTL Days" />
+                            <TextBlock Style="{StaticResource SubtitleText}" Text="How long geo data is considered fresh." />
+                            <TextBox Text="{x:Bind ViewModel.CacheTtlDays, Mode=TwoWay}" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
 
-            <StackPanel Spacing="6">
-                <TextBlock Text="Allow IPs (one per line)" />
-                <TextBox
-                    Text="{x:Bind ViewModel.AllowIpList, Mode=TwoWay}"
-                    AcceptsReturn="True"
-                    Height="100" />
-            </StackPanel>
-
-            <StackPanel Spacing="6">
-                <TextBlock Text="Block IPs (one per line)" />
-                <TextBox
-                    Text="{x:Bind ViewModel.BlockIpList, Mode=TwoWay}"
-                    AcceptsReturn="True"
-                    Height="100" />
-            </StackPanel>
-
-            <StackPanel Spacing="6">
-                <TextBlock Text="Allow Subnets (one per line, e.g. 203.0.113.0/24)" />
-                <TextBox
-                    Text="{x:Bind ViewModel.AllowSubnetList, Mode=TwoWay}"
-                    AcceptsReturn="True"
-                    Height="100" />
-            </StackPanel>
-
-            <StackPanel Spacing="6">
-                <TextBlock Text="Block Subnets (one per line, e.g. 203.0.113.0/24)" />
-                <TextBox
-                    Text="{x:Bind ViewModel.BlockSubnetList, Mode=TwoWay}"
-                    AcceptsReturn="True"
-                    Height="100" />
-            </StackPanel>
+            <Border Style="{StaticResource Card}">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Logon types" />
+                    <TextBlock Style="{StaticResource SubtitleText}" Text="Select which logon types to monitor for failures." />
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <CheckBox Content="Logon Type 10 (RDP)" IsChecked="{x:Bind ViewModel.MonitorLogonType10, Mode=TwoWay}" />
+                        <CheckBox Content="Logon Type 3 (Network/NLA)" IsChecked="{x:Bind ViewModel.MonitorLogonType3, Mode=TwoWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
         </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Page>

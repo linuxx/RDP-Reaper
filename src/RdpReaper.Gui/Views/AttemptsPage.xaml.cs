@@ -1,4 +1,5 @@
 using RdpReaper.Gui.ViewModels;
+using Windows.ApplicationModel.DataTransfer;
 
 namespace RdpReaper.Gui.Views;
 
@@ -25,5 +26,43 @@ public sealed partial class AttemptsPage : Page
     private async void OnPrevClicked(object sender, RoutedEventArgs e)
     {
         await ViewModel.PrevPageAsync();
+    }
+
+    private void OnCopyJsonClicked(object sender, RoutedEventArgs e)
+    {
+        var attempt = GetAttemptFromSender(sender);
+        if (attempt != null)
+        {
+            var data = new DataPackage();
+            data.SetText(attempt.Json);
+            Clipboard.SetContent(data);
+        }
+    }
+
+    private async void OnBanIpClicked(object sender, RoutedEventArgs e)
+    {
+        var attempt = GetAttemptFromSender(sender);
+        if (attempt != null)
+        {
+            await ViewModel.BanIpAsync(attempt.Ip);
+        }
+    }
+
+    private static AttemptView? GetAttemptFromSender(object sender)
+    {
+        if (sender is MenuFlyoutItem item)
+        {
+            if (item.Tag is AttemptView attemptTag)
+            {
+                return attemptTag;
+            }
+
+            if (item.DataContext is AttemptView attempt)
+            {
+                return attempt;
+            }
+        }
+
+        return null;
     }
 }

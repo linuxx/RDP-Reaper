@@ -35,17 +35,17 @@ public sealed class FirewallManager
         _logger.LogInformation("Firewall manager stopped.");
     }
 
-    public void AddBlockedIp(string ip)
+    public void AddBlockedEntry(string entry)
     {
-        if (_blockedIps.TryAdd(ip, 0))
+        if (_blockedIps.TryAdd(entry, 0))
         {
             Interlocked.Exchange(ref _dirty, 1);
         }
     }
 
-    public void RemoveBlockedIp(string ip)
+    public void RemoveBlockedEntry(string entry)
     {
-        if (_blockedIps.TryRemove(ip, out _))
+        if (_blockedIps.TryRemove(entry, out _))
         {
             Interlocked.Exchange(ref _dirty, 1);
         }

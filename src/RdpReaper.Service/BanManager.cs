@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using RdpReaper.Core.Data;
 
@@ -40,7 +41,7 @@ public sealed class BanManager
         {
             if (_activeBans.TryAdd(ban.Key, ban))
             {
-                _firewallManager.AddBlockedIp(ban.Key);
+                _firewallManager.AddBlockedEntry(ban.Key);
             }
         }
 
@@ -78,7 +79,7 @@ public sealed class BanManager
 
         _activeBans.TryAdd(ip, ban);
         _statusState.SetActiveBans(_activeBans.Count);
-        _firewallManager.AddBlockedIp(ip);
+        _firewallManager.AddBlockedEntry(ip);
 
         _logger.LogInformation("Banned IP {ip} for {duration}.", ip, duration);
         return true;
@@ -110,7 +111,7 @@ public sealed class BanManager
 
         _activeBans.TryAdd(ip, ban);
         _statusState.SetActiveBans(_activeBans.Count);
-        _firewallManager.AddBlockedIp(ip);
+        _firewallManager.AddBlockedEntry(ip);
 
         _logger.LogInformation("Manually banned IP {ip} for {duration}.", ip, duration);
         return true;
@@ -136,9 +137,72 @@ public sealed class BanManager
         }
 
         _statusState.SetActiveBans(_activeBans.Count);
-        _firewallManager.RemoveBlockedIp(ip);
+        _firewallManager.RemoveBlockedEntry(ip);
         _logger.LogInformation("Unbanned IP {ip}.", ip);
         return true;
+    }
+
+    public async Task<bool> BanSubnetAsync(string subnet, string reason, TimeSpan duration, CancellationToken cancellationToken)
+    {
+        if (IsBanned(subnet))
+        {
+            return false;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var ban = new Ban
+        {
+            BanType = "Subnet",
+            Key = subnet,
+            CreatedAt = now,
+            ExpiresAt = duration == TimeSpan.Zero ? null : now.Add(duration),
+            Permanent = duration == TimeSpan.Zero,
+            Reason = reason,
+            SourcePolicy = "SubnetThreshold",
+            LastSeenAt = now
+        };
+
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        db.Bans.Add(ban);
+        await db.SaveChangesAsync(cancellationToken);
+
+        _activeBans.TryAdd(subnet, ban);
+        _statusState.SetActiveBans(_activeBans.Count);
+        _firewallManager.AddBlockedEntry(subnet);
+
+        _logger.LogWarning("Banned subnet {subnet} for {duration}.", subnet, duration);
+        return true;
+    }
+
+    public async Task ExpireAsync(CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var expiredKeys = _activeBans.Values
+            .Where(b => b.ExpiresAt.HasValue && b.ExpiresAt.Value <= now)
+            .Select(b => b.Key)
+            .ToList();
+
+        if (expiredKeys.Count == 0)
+        {
+            return;
+        }
+
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var expiredBans = await db.Bans
+            .Where(b => b.ExpiresAt.HasValue && b.ExpiresAt.Value <= now)
+            .ToListAsync(cancellationToken);
+        if (expiredBans.Count > 0)
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
+        foreach (var key in expiredKeys)
+        {
+            _activeBans.TryRemove(key, out _);
+            _firewallManager.RemoveBlockedEntry(key);
+        }
+
+        _statusState.SetActiveBans(_activeBans.Count);
     }
 
     public IReadOnlyCollection<Ban> GetActiveBans()

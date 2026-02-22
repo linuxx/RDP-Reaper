@@ -4,45 +4,121 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <Grid Padding="24">
+    <Grid Padding="28" Background="{StaticResource AppBackgroundBrush}" FontFamily="{StaticResource BodyFontFamily}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Spacing="6">
-            <TextBlock FontSize="28" FontWeight="SemiBold" Text="RDP Reaper" />
-            <TextBlock FontSize="14" Text="Local status and control" Opacity="0.7" />
-        </StackPanel>
-
-        <StackPanel Grid.Row="1" Spacing="16" Margin="0,24,0,0">
-            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="20" Height="20" />
-                <Button Content="Refresh" Click="OnRefreshClicked" />
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Border Width="44" Height="44" CornerRadius="12" Background="{StaticResource AppSurfaceAltBrush}">
+                        <Image Source="ms-appx:///Assets/Reaper.png" Stretch="Uniform" />
+                    </Border>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource PageTitle}" Text="RDP Reaper" />
+                        <TextBlock Style="{StaticResource SubtitleText}" Text="Live posture, bans, and geo signal" />
+                    </StackPanel>
+                </StackPanel>
             </StackPanel>
-
-            <StackPanel Spacing="8">
-                <TextBlock FontSize="16" Text="Service" Opacity="0.6" />
-                <TextBlock FontSize="20" Text="{x:Bind ViewModel.ServiceText, Mode=OneWay}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="18" Height="18" />
+                <Button Content="Refresh" Click="OnRefreshClicked" Style="{StaticResource GhostButton}" />
+                <Border Background="{StaticResource AppSurfaceAltBrush}" CornerRadius="999" Padding="12,6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="Service" Style="{StaticResource SubtitleText}" />
+                        <TextBlock Text="{x:Bind ViewModel.ServiceText, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
             </StackPanel>
+        </Grid>
 
-            <StackPanel Spacing="8">
-                <TextBlock FontSize="16" Text="Last Event (UTC)" Opacity="0.6" />
-                <TextBlock FontSize="20" Text="{x:Bind ViewModel.LastEventText, Mode=OneWay}" />
-            </StackPanel>
+        <Grid Grid.Row="1" Margin="0,24,0,0" x:Name="DashboardLayout" ColumnSpacing="16" RowSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="PrimaryColumn" Width="2*" />
+                <ColumnDefinition x:Name="SecondaryColumn" Width="3*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-            <StackPanel Spacing="8">
-                <TextBlock FontSize="16" Text="Active Bans" Opacity="0.6" />
-                <TextBlock FontSize="20" Text="{x:Bind ViewModel.ActiveBansText, Mode=OneWay}" />
-            </StackPanel>
+            <Grid Grid.Row="0" Grid.Column="0" ColumnSpacing="12" RowSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-            <TextBlock
-                Foreground="DarkRed"
-                Text="{x:Bind ViewModel.ErrorText, Mode=OneWay}"
-                TextWrapping="Wrap"
-                Visibility="{x:Bind ViewModel.ErrorVisibility, Mode=OneWay}" />
-        </StackPanel>
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Style="{StaticResource SubtitleText}" Text="Active bans" />
+                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="{x:Bind ViewModel.ActiveBansText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource SubtitleText}" Text="Live firewall blocks" />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Style="{StaticResource SubtitleText}" Text="Attempts (last hour)" />
+                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="{x:Bind ViewModel.LastHourAttemptsText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource SubtitleText}" Text="Short-term pressure" />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Style="{StaticResource SubtitleText}" Text="Attempts (24h)" />
+                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="{x:Bind ViewModel.LastDayAttemptsText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource SubtitleText}" Text="Daily threat load" />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Card}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Style="{StaticResource SubtitleText}" Text="Unique IPs (24h)" />
+                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="{x:Bind ViewModel.LastDayUniqueIpsText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource SubtitleText}" Text="Distinct sources" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border x:Name="EventCard" Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}">
+                <StackPanel Spacing="10">
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Last event" />
+                    <TextBlock Text="{x:Bind ViewModel.LastEventText, Mode=OneWay}" FontSize="18" />
+                    <TextBlock
+                        Foreground="{StaticResource AppAccentSoftBrush}"
+                        Text="{x:Bind ViewModel.ErrorText, Mode=OneWay}"
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind ViewModel.ErrorVisibility, Mode=OneWay}" />
+                </StackPanel>
+            </Border>
+
+            <Border x:Name="MapCard" Grid.Row="0" Grid.Column="1" Grid.RowSpan="3" Style="{StaticResource Card}">
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="Geo pressure map" />
+                        <TextBlock Style="{StaticResource SubtitleText}" Text="Recent attempts by approximate origin" />
+                    </StackPanel>
+                    <Border Grid.Row="1" CornerRadius="10" Background="{StaticResource AppSurfaceBrush}">
+                        <controls:WebView2 x:Name="MapView" />
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

@@ -32,6 +32,10 @@ builder.Services.AddSingleton<StatusState>();
 builder.Services.AddSingleton<BanManager>();
 builder.Services.AddSingleton<AttemptProcessor>();
 builder.Services.AddSingleton<FirewallManager>();
+builder.Services.AddSingleton<GeoEnrichmentQueue>();
+builder.Services.AddSingleton<GeoCacheService>();
+builder.Services.AddHostedService<GeoEnrichmentWorker>();
+builder.Services.AddHostedService<BanExpiryWorker>();
 builder.Services.AddHostedService<ApiHost>();
 builder.Services.AddHostedService<Worker>();
 

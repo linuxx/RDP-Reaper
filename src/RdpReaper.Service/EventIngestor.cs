@@ -2,6 +2,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.Net;
 using System.Xml.Linq;
+using RdpReaper.Core.Config;
 using RdpReaper.Core.Data;
 
 namespace RdpReaper.Service;
@@ -9,21 +10,23 @@ namespace RdpReaper.Service;
 public sealed class EventIngestor
 {
     private const int FailedLogonEventId = 4625;
-    private const int RdpLogonType = 10;
     private readonly ILogger<EventIngestor> _logger;
     private readonly AttemptProcessor _attemptProcessor;
+    private readonly AppConfig _config;
     private EventLogWatcher? _watcher;
 
-    public EventIngestor(ILogger<EventIngestor> logger, AttemptProcessor attemptProcessor)
+    public EventIngestor(ILogger<EventIngestor> logger, AttemptProcessor attemptProcessor, AppConfig config)
     {
         _logger = logger;
         _attemptProcessor = attemptProcessor;
+        _config = config;
     }
 
     public void Start()
     {
-        var query =
-            "*[System[(EventID=4625)]] and *[EventData[Data[@Name='LogonType']='10']]";
+        var logonTypes = _config.MonitoredLogonTypes.Count == 0 ? new List<int> { 3, 10 } : _config.MonitoredLogonTypes;
+        var logonTypeFilter = string.Join(" or ", logonTypes.Select(t => $"*[EventData[Data[@Name='LogonType']='{t}']]"));
+        var query = $"*[System[(EventID=4625)]] and ({logonTypeFilter})";
         var logQuery = new EventLogQuery("Security", PathType.LogName, query);
         _watcher = new EventLogWatcher(logQuery);
         _watcher.EventRecordWritten += OnEventRecordWritten;
@@ -72,7 +75,7 @@ public sealed class EventIngestor
         }
     }
 
-    private static Attempt? ParseAttempt(EventRecord record)
+    private Attempt? ParseAttempt(EventRecord record)
     {
         if (record.Id != FailedLogonEventId)
         {
@@ -81,8 +84,13 @@ public sealed class EventIngestor
 
         var xml = XDocument.Parse(record.ToXml());
         var logonType = GetEventDataValue(xml, "LogonType");
-        if (!int.TryParse(logonType, NumberStyles.Integer, CultureInfo.InvariantCulture, out var type) ||
-            type != RdpLogonType)
+        if (!int.TryParse(logonType, NumberStyles.Integer, CultureInfo.InvariantCulture, out var type))
+        {
+            return null;
+        }
+
+        var allowed = _config.MonitoredLogonTypes.Count == 0 ? new List<int> { 3, 10 } : _config.MonitoredLogonTypes;
+        if (!allowed.Contains(type))
         {
             return null;
         }
@@ -96,7 +104,7 @@ public sealed class EventIngestor
         var attempt = new Attempt
         {
             Time = record.TimeCreated.HasValue
-                ? new DateTimeOffset(record.TimeCreated.Value, TimeSpan.Zero)
+                ? new DateTimeOffset(record.TimeCreated.Value)
                 : DateTimeOffset.UtcNow,
             Ip = ip,
             Subnet = GetSubnet(ip),

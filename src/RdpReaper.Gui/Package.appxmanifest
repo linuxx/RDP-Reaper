@@ -15,9 +15,9 @@
   <mp:PhoneIdentity PhoneProductId="aa504c36-220b-42a5-ab14-94df7c8b8648" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>RdpReaper.Gui</DisplayName>
+    <DisplayName>RdpReaper</DisplayName>
     <PublisherDisplayName>User Name</PublisherDisplayName>
-    <Logo>Assets\StoreLogo.png</Logo>
+    <Logo>Assets\Reaper.png</Logo>
   </Properties>
 
   <Dependencies>
@@ -34,13 +34,13 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="RdpReaper.Gui"
-        Description="RdpReaper.Gui"
+        DisplayName="RdpReaper"
+        Description="RdpReaper"
         BackgroundColor="transparent"
-        Square150x150Logo="Assets\Square150x150Logo.png"
-        Square44x44Logo="Assets\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
-        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        Square150x150Logo="Assets\Reaper.png"
+        Square44x44Logo="Assets\Reaper.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Reaper.png" />
+        <uap:SplashScreen Image="Assets\Reaper.png" />
       </uap:VisualElements>
     </Application>
   </Applications>

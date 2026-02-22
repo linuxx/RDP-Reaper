@@ -7,19 +7,26 @@
     xmlns:local="using:RdpReaper.Gui.ViewModels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <Grid Padding="24">
+    <Grid Padding="28" Background="{StaticResource AppBackgroundBrush}" FontFamily="{StaticResource BodyFontFamily}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Spacing="12">
-            <TextBlock FontSize="24" FontWeight="SemiBold" Text="Service Logs" />
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="18" Height="18" />
-                <Button Content="Refresh" Click="OnRefreshClicked" />
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource PageTitle}" Text="Service logs" />
+                <TextBlock Style="{StaticResource SubtitleText}" Text="Minimal service events for audit context." />
             </StackPanel>
-        </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="18" Height="18" />
+                <Button Content="Refresh" Click="OnRefreshClicked" Style="{StaticResource GhostButton}" />
+            </StackPanel>
+        </Grid>
 
         <Grid Grid.Row="1" Margin="0,16,0,0">
             <Grid.RowDefinitions>
@@ -29,34 +36,56 @@
 
             <TextBlock
                 Grid.Row="0"
-                Foreground="DarkRed"
+                Foreground="{StaticResource AppAccentSoftBrush}"
                 Text="{x:Bind ViewModel.ErrorText, Mode=OneWay}"
                 TextWrapping="Wrap"
                 Visibility="{x:Bind ViewModel.ErrorVisibility, Mode=OneWay}" />
 
-            <ListView
-                Grid.Row="1"
-                ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}"
-                Margin="0,8,0,0">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="local:LogEntryView">
-                        <Grid Padding="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="180" />
-                                <ColumnDefinition Width="120" />
-                                <ColumnDefinition Width="180" />
-                                <ColumnDefinition Width="100" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{x:Bind TimeUtc}" />
-                            <TextBlock Grid.Column="1" Text="{x:Bind Level}" />
-                            <TextBlock Grid.Column="2" Text="{x:Bind Source}" />
-                            <TextBlock Grid.Column="3" Text="{x:Bind EventId}" />
-                            <TextBlock Grid.Column="4" Text="{x:Bind Message}" TextWrapping="Wrap" />
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" ColumnSpacing="12" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource SubtitleText}" Text="Time (UTC)" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource SubtitleText}" Text="Level" />
+                    <TextBlock Grid.Column="2" Style="{StaticResource SubtitleText}" Text="Source" />
+                    <TextBlock Grid.Column="3" Style="{StaticResource SubtitleText}" Text="Event" />
+                    <TextBlock Grid.Column="4" Style="{StaticResource SubtitleText}" Text="Message" />
+                </Grid>
+                <ListView
+                    Grid.Row="1"
+                    ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}"
+                    Margin="0,8,0,0">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="local:LogEntryView">
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="180" />
+                                        <ColumnDefinition Width="120" />
+                                        <ColumnDefinition Width="180" />
+                                        <ColumnDefinition Width="100" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{x:Bind TimeUtc}" />
+                                    <TextBlock Grid.Column="1" Text="{x:Bind Level}" />
+                                    <TextBlock Grid.Column="2" Text="{x:Bind Source}" />
+                                    <TextBlock Grid.Column="3" Text="{x:Bind EventId}" />
+                                    <TextBlock Grid.Column="4" Text="{x:Bind Message}" TextWrapping="Wrap" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
         </Grid>
     </Grid>
 </Page>

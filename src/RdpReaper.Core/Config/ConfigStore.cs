@@ -56,6 +56,9 @@ public static class ConfigStore
         config.BlockIpList = NormalizeList(config.BlockIpList);
         config.AllowSubnetList = NormalizeList(config.AllowSubnetList);
         config.BlockSubnetList = NormalizeList(config.BlockSubnetList);
+        config.AllowCountryList = NormalizeList(config.AllowCountryList);
+        config.BlockCountryList = NormalizeList(config.BlockCountryList);
+        config.MonitoredLogonTypes = NormalizeLogonTypes(config.MonitoredLogonTypes);
     }
 
     private static List<string> NormalizeList(List<string>? list)
@@ -69,6 +72,20 @@ public static class ConfigStore
             .Select(entry => entry.Trim())
             .Where(entry => !string.IsNullOrWhiteSpace(entry))
             .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static List<int> NormalizeLogonTypes(List<int>? list)
+    {
+        if (list == null || list.Count == 0)
+        {
+            return new List<int> { 3, 10 };
+        }
+
+        return list
+            .Where(value => value > 0)
+            .Distinct()
+            .OrderBy(value => value)
             .ToList();
     }
 }

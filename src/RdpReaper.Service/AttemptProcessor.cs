@@ -15,6 +15,8 @@ public sealed class AttemptProcessor
     private readonly CounterStore _counterStore;
     private readonly BanManager _banManager;
     private readonly StatusState _statusState;
+    private readonly GeoCacheService _geoCacheService;
+    private readonly GeoEnrichmentQueue _geoQueue;
 
     public AttemptProcessor(
         ILogger<AttemptProcessor> logger,
@@ -22,7 +24,9 @@ public sealed class AttemptProcessor
         AppConfig config,
         CounterStore counterStore,
         BanManager banManager,
-        StatusState statusState)
+        StatusState statusState,
+        GeoCacheService geoCacheService,
+        GeoEnrichmentQueue geoQueue)
     {
         _logger = logger;
         _dbContextFactory = dbContextFactory;
@@ -30,6 +34,8 @@ public sealed class AttemptProcessor
         _counterStore = counterStore;
         _banManager = banManager;
         _statusState = statusState;
+        _geoCacheService = geoCacheService;
+        _geoQueue = geoQueue;
     }
 
     public async Task ProcessAsync(Attempt attempt, CancellationToken cancellationToken)
@@ -62,6 +68,9 @@ public sealed class AttemptProcessor
             return;
         }
 
+        await ApplyCountryPolicyAsync(attempt, cancellationToken);
+        await QueueEnrichmentAsync(attempt, cancellationToken);
+
         var window = TimeSpan.FromSeconds(_config.IpWindowSeconds);
         var count = _counterStore.AddFailure(attempt.Ip, attempt.Time, window);
         if (count >= _config.IpFailureThreshold)
@@ -78,6 +87,21 @@ public sealed class AttemptProcessor
                 _logger.LogWarning("IP {ip} banned after {count} failures.", attempt.Ip, count);
             }
         }
+
+        if (!string.IsNullOrWhiteSpace(attempt.Subnet))
+        {
+            var subnetWindow = TimeSpan.FromSeconds(_config.SubnetWindowSeconds);
+            var (total, unique) = _counterStore.AddSubnetFailure(attempt.Subnet, attempt.Ip, attempt.Time, subnetWindow);
+            if (total >= _config.SubnetFailureThreshold && unique >= _config.SubnetMinUniqueIps)
+            {
+                var duration = TimeSpan.FromSeconds(_config.SubnetBanDurationSeconds);
+                await _banManager.BanSubnetAsync(
+                    attempt.Subnet,
+                    $"Subnet threshold exceeded ({total} failures, {unique} IPs)",
+                    duration,
+                    cancellationToken);
+            }
+        }
     }
 
     private bool IsAllowListed(Attempt attempt)
@@ -90,6 +114,59 @@ public sealed class AttemptProcessor
     {
         return Contains(_config.BlockIpList, attempt.Ip) ||
                Contains(_config.BlockSubnetList, attempt.Subnet);
+    }
+
+    private async Task ApplyCountryPolicyAsync(Attempt attempt, CancellationToken cancellationToken)
+    {
+        if (_config.AllowCountryList.Count == 0 && _config.BlockCountryList.Count == 0)
+        {
+            return;
+        }
+
+        var cache = await _geoCacheService.GetAsync(attempt.Ip, cancellationToken);
+        if (cache == null || string.IsNullOrWhiteSpace(cache.CountryCode))
+        {
+            return;
+        }
+
+        var country = cache.CountryCode;
+        if (_config.AllowCountryList.Count > 0 && !Contains(_config.AllowCountryList, country))
+        {
+            await _banManager.ManualBanIpAsync(
+                attempt.Ip,
+                $"Country not allowed: {country}",
+                TimeSpan.FromSeconds(_config.IpBanDurationSeconds),
+                cancellationToken);
+            return;
+        }
+
+        if (Contains(_config.BlockCountryList, country))
+        {
+            await _banManager.ManualBanIpAsync(
+                attempt.Ip,
+                $"Country blocked: {country}",
+                TimeSpan.FromSeconds(_config.IpBanDurationSeconds),
+                cancellationToken);
+        }
+    }
+
+    private async Task QueueEnrichmentAsync(Attempt attempt, CancellationToken cancellationToken)
+    {
+        if (!_config.EnrichmentEnabled)
+        {
+            return;
+        }
+
+        var cache = await _geoCacheService.GetAsync(attempt.Ip, cancellationToken);
+        if (cache != null && cache.NextRetryAt.HasValue && cache.NextRetryAt.Value > DateTimeOffset.UtcNow)
+        {
+            return;
+        }
+
+        if (cache == null || !_geoCacheService.IsFresh(cache))
+        {
+            await _geoQueue.EnqueueAsync(attempt.Ip);
+        }
     }
 
     private static bool Contains(IEnumerable<string> list, string value)

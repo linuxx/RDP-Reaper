@@ -4,6 +4,9 @@
         <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
         <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
         <OutputType>WinExe</OutputType>
+        <ApplicationIcon>Assets\Reaper.ico</ApplicationIcon>
+        <SuppressXamlWarnings>WMC1509</SuppressXamlWarnings>
+        <XamlLocalAssembly>$(IntermediateOutputPath)intermediatexaml\\$(AssemblyName).dll</XamlLocalAssembly>
 
         <!-- WinUI 3 -->
         <UseWinUI>true</UseWinUI>
@@ -33,6 +36,13 @@
         <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
         <Content Include="Assets\StoreLogo.png" />
         <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+        <Content Include="Assets\Reaper.png" />
+        <Content Include="Assets\map.html">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="Assets\Reaper.ico">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
@@ -58,6 +68,7 @@
     <ItemGroup>
       <ProjectReference Include="..\RdpReaper.Core\RdpReaper.Core.csproj" />
     </ItemGroup>
+
 
     <!-- 
         Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution 

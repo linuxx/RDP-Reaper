@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using RdpReaper.Gui.Services;
 
 namespace RdpReaper.Gui.ViewModels;
@@ -6,6 +7,7 @@ namespace RdpReaper.Gui.ViewModels;
 public sealed class AttemptView
 {
     private readonly string _searchText;
+    private readonly string _json;
 
     public AttemptView(ApiClient.AttemptRecord record)
     {
@@ -28,6 +30,12 @@ public sealed class AttemptView
             LogonType,
             EventId
         });
+
+        _json = JsonSerializer.Serialize(record, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        });
     }
 
     public string TimeUtc { get; }
@@ -38,6 +46,7 @@ public sealed class AttemptView
     public string Status { get; }
     public string LogonType { get; }
     public string EventId { get; }
+    public string Json => _json;
 
     public bool Matches(string query)
     {

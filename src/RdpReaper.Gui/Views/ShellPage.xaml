@@ -10,14 +10,51 @@
         x:Name="NavView"
         IsBackEnabled="False"
         IsBackButtonVisible="Collapsed"
-        PaneDisplayMode="Left"
+        Background="{StaticResource AppBackgroundBrush}"
+        PaneDisplayMode="LeftMinimal"
+        OpenPaneLength="220"
+        CompactPaneLength="56"
+        FontFamily="{StaticResource BodyFontFamily}"
         SelectionChanged="OnSelectionChanged">
+        <NavigationView.Header>
+            <Grid Padding="12,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Border
+                    Width="36"
+                    Height="36"
+                    CornerRadius="10"
+                    Background="{StaticResource AppSurfaceAltBrush}">
+                    <Image Source="ms-appx:///Assets/Reaper.png" Stretch="Uniform" />
+                </Border>
+                <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                    <TextBlock
+                        FontFamily="{StaticResource HeaderFontFamily}"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="RDP Reaper" />
+                    <TextBlock Style="{StaticResource SubtitleText}" Text="Endpoint defense" />
+                </StackPanel>
+                <ToggleButton
+                    x:Name="PinToggle"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Content="Pin"
+                    Click="OnPinClicked"
+                    Style="{StaticResource ToolbarToggleButton}" />
+            </Grid>
+        </NavigationView.Header>
         <NavigationView.MenuItems>
             <NavigationViewItem Content="Dashboard" Icon="Home" Tag="Dashboard" />
             <NavigationViewItem Content="Bans" Icon="BlockContact" Tag="Bans" />
             <NavigationViewItem Content="Attempts" Icon="List" Tag="Attempts" />
             <NavigationViewItem Content="Policy" Icon="Setting" Tag="Policy" />
             <NavigationViewItem Content="Logs" Icon="Document" Tag="Logs" />
+            <NavigationViewItemSeparator />
+            <NavigationViewItem Content="Settings" Icon="Setting" Tag="Policy" />
         </NavigationView.MenuItems>
 
         <Frame x:Name="ContentFrame" />

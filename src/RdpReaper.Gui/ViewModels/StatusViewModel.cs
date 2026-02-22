@@ -16,6 +16,9 @@ public sealed class StatusViewModel : INotifyPropertyChanged
     private string _activeBansText = "0";
     private string _errorText = string.Empty;
     private bool _isBusy;
+    private string _lastHourAttempts = "0";
+    private string _lastDayAttempts = "0";
+    private string _lastDayUniqueIps = "0";
 
     public string ServiceText
     {
@@ -33,6 +36,24 @@ public sealed class StatusViewModel : INotifyPropertyChanged
     {
         get => _activeBansText;
         private set => SetField(ref _activeBansText, value);
+    }
+
+    public string LastHourAttemptsText
+    {
+        get => _lastHourAttempts;
+        private set => SetField(ref _lastHourAttempts, value);
+    }
+
+    public string LastDayAttemptsText
+    {
+        get => _lastDayAttempts;
+        private set => SetField(ref _lastDayAttempts, value);
+    }
+
+    public string LastDayUniqueIpsText
+    {
+        get => _lastDayUniqueIps;
+        private set => SetField(ref _lastDayUniqueIps, value);
     }
 
     public string ErrorText
@@ -73,10 +94,14 @@ public sealed class StatusViewModel : INotifyPropertyChanged
 
             var client = new ApiClient(config, token);
             var status = await client.GetStatusAsync();
+            var stats = await client.GetStatsAsync();
 
             ServiceText = status.Service ?? "Unknown";
             LastEventText = status.LastEventUtc?.ToString("u") ?? "-";
             ActiveBansText = status.ActiveBans.ToString();
+            LastHourAttemptsText = stats.LastHourAttempts.ToString();
+            LastDayAttemptsText = stats.LastDayAttempts.ToString();
+            LastDayUniqueIpsText = stats.LastDayUniqueIps.ToString();
         }
         catch (Exception ex)
         {

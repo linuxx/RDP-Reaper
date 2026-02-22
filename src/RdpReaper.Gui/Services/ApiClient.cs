@@ -112,6 +112,34 @@ public sealed class ApiClient
         return logs ?? new List<LogEntry>();
     }
 
+    public async Task<StatsResponse> GetStatsAsync()
+    {
+        var response = await _httpClient.GetAsync("api/stats");
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+        var stats = JsonSerializer.Deserialize<StatsResponse>(json, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
+        return stats ?? new StatsResponse();
+    }
+
+    public async Task<IReadOnlyList<GeoRecord>> GetRecentGeoAsync(int take)
+    {
+        var response = await _httpClient.GetAsync($"api/geo/recent?take={take}");
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+        var records = JsonSerializer.Deserialize<List<GeoRecord>>(json, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
+        return records ?? new List<GeoRecord>();
+    }
+
     public async Task BanIpAsync(BanRequest request)
     {
         var json = JsonSerializer.Serialize(request, new JsonSerializerOptions
@@ -166,11 +194,22 @@ public sealed class ApiClient
         public int IpFailureThreshold { get; set; }
         public int IpWindowSeconds { get; set; }
         public int IpBanDurationSeconds { get; set; }
+        public int SubnetFailureThreshold { get; set; }
+        public int SubnetWindowSeconds { get; set; }
+        public int SubnetBanDurationSeconds { get; set; }
+        public int SubnetMinUniqueIps { get; set; }
         public bool FirewallEnabled { get; set; }
         public List<string> AllowIpList { get; set; } = new();
         public List<string> BlockIpList { get; set; } = new();
         public List<string> AllowSubnetList { get; set; } = new();
         public List<string> BlockSubnetList { get; set; } = new();
+        public List<string> AllowCountryList { get; set; } = new();
+        public List<string> BlockCountryList { get; set; } = new();
+        public bool EnrichmentEnabled { get; set; }
+        public string IpWhoisApiKey { get; set; } = string.Empty;
+        public int EnrichmentMaxPerMinute { get; set; }
+        public int CacheTtlDays { get; set; }
+        public List<int> MonitoredLogonTypes { get; set; } = new();
     }
 
     public sealed class LogEntry
@@ -180,6 +219,23 @@ public sealed class ApiClient
         public string? Source { get; set; }
         public long EventId { get; set; }
         public string? Message { get; set; }
+    }
+
+    public sealed class StatsResponse
+    {
+        public int LastHourAttempts { get; set; }
+        public int LastDayAttempts { get; set; }
+        public int LastDayUniqueIps { get; set; }
+        public int ActiveBans { get; set; }
+    }
+
+    public sealed class GeoRecord
+    {
+        public string? Ip { get; set; }
+        public string? CountryCode { get; set; }
+        public string? Country { get; set; }
+        public double? Lat { get; set; }
+        public double? Lon { get; set; }
     }
 
     public sealed class AttemptQuery

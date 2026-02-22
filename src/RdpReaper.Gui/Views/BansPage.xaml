@@ -7,28 +7,49 @@
     xmlns:local="using:RdpReaper.Gui.ViewModels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <Grid Padding="24">
+    <Grid Padding="28" Background="{StaticResource AppBackgroundBrush}" FontFamily="{StaticResource BodyFontFamily}">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Spacing="12">
-            <TextBlock FontSize="24" FontWeight="SemiBold" Text="Active Bans" />
-            <StackPanel Orientation="Horizontal" Spacing="12">
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource PageTitle}" Text="Active bans" />
+                <TextBlock Style="{StaticResource SubtitleText}" Text="Review and manually enforce immediate blocks." />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="18" Height="18" />
-                <Button Content="Refresh" Click="OnRefreshClicked" />
+                <Button Content="Refresh" Click="OnRefreshClicked" Style="{StaticResource GhostButton}" />
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                <TextBox Width="200" PlaceholderText="IP to ban" Text="{x:Bind ViewModel.ManualIp, Mode=TwoWay}" />
-                <TextBox Width="120" PlaceholderText="Seconds" Text="{x:Bind ViewModel.ManualDurationSeconds, Mode=TwoWay}" />
-                <TextBox Width="240" PlaceholderText="Reason" Text="{x:Bind ViewModel.ManualReason, Mode=TwoWay}" />
-                <ToggleSwitch Header="Permanent" IsOn="{x:Bind ViewModel.ManualPermanent, Mode=TwoWay}" />
-                <Button Content="Ban" Click="OnBanClicked" />
-            </StackPanel>
-        </StackPanel>
+        </Grid>
 
-        <Grid Grid.Row="1" Margin="0,16,0,0">
+        <Border Grid.Row="1" Margin="0,16,0,0" Style="{StaticResource Card}">
+            <StackPanel Spacing="12">
+                <TextBlock Style="{StaticResource SectionTitle}" Text="Manual ban" />
+                <Grid ColumnSpacing="12" RowSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200" />
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="240" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" PlaceholderText="IP to ban" Text="{x:Bind ViewModel.ManualIp, Mode=TwoWay}" />
+                    <TextBox Grid.Column="1" PlaceholderText="Seconds" Text="{x:Bind ViewModel.ManualDurationSeconds, Mode=TwoWay}" />
+                    <TextBox Grid.Column="2" PlaceholderText="Reason" Text="{x:Bind ViewModel.ManualReason, Mode=TwoWay}" />
+                    <ToggleSwitch Grid.Column="3" Header="Permanent" IsOn="{x:Bind ViewModel.ManualPermanent, Mode=TwoWay}" />
+                    <Button Grid.Column="4" Content="Ban" Click="OnBanClicked" Style="{StaticResource PrimaryButton}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="0,16,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -36,36 +57,60 @@
 
             <TextBlock
                 Grid.Row="0"
-                Foreground="DarkRed"
+                Foreground="{StaticResource AppAccentSoftBrush}"
                 Text="{x:Bind ViewModel.ErrorText, Mode=OneWay}"
                 TextWrapping="Wrap"
                 Visibility="{x:Bind ViewModel.ErrorVisibility, Mode=OneWay}" />
 
-            <ListView
-                Grid.Row="1"
-                ItemsSource="{x:Bind ViewModel.Bans, Mode=OneWay}"
-                Margin="0,8,0,0">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="local:BanView">
-                        <Grid Padding="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="140" />
-                                <ColumnDefinition Width="200" />
-                                <ColumnDefinition Width="200" />
-                                <ColumnDefinition Width="200" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="100" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{x:Bind BanType}" />
-                            <TextBlock Grid.Column="1" Text="{x:Bind Key}" />
-                            <TextBlock Grid.Column="2" Text="{x:Bind CreatedAtUtc}" />
-                            <TextBlock Grid.Column="3" Text="{x:Bind ExpiresAtUtc}" />
-                            <TextBlock Grid.Column="4" Text="{x:Bind Reason}" TextWrapping="Wrap" />
-                            <Button Grid.Column="5" Content="Unban" Tag="{x:Bind Key}" Click="OnUnbanClicked" />
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" ColumnSpacing="12" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="200" />
+                        <ColumnDefinition Width="200" />
+                        <ColumnDefinition Width="200" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="100" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource SubtitleText}" Text="Type" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource SubtitleText}" Text="Key" />
+                    <TextBlock Grid.Column="2" Style="{StaticResource SubtitleText}" Text="Created (UTC)" />
+                    <TextBlock Grid.Column="3" Style="{StaticResource SubtitleText}" Text="Expires (UTC)" />
+                    <TextBlock Grid.Column="4" Style="{StaticResource SubtitleText}" Text="Reason" />
+                    <TextBlock Grid.Column="5" Style="{StaticResource SubtitleText}" Text="Action" />
+                </Grid>
+                <ListView
+                    Grid.Row="1"
+                    ItemsSource="{x:Bind ViewModel.Bans, Mode=OneWay}"
+                    Margin="0,8,0,0">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="local:BanView">
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="200" />
+                                        <ColumnDefinition Width="200" />
+                                        <ColumnDefinition Width="200" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="100" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{x:Bind BanType}" />
+                                    <TextBlock Grid.Column="1" Text="{x:Bind Key}" />
+                                    <TextBlock Grid.Column="2" Text="{x:Bind CreatedAtUtc}" />
+                                    <TextBlock Grid.Column="3" Text="{x:Bind ExpiresAtUtc}" />
+                                    <TextBlock Grid.Column="4" Text="{x:Bind Reason}" TextWrapping="Wrap" />
+                                    <Button Grid.Column="5" Content="Unban" Tag="{x:Bind Key}" Click="OnUnbanClicked" Style="{StaticResource ToolbarButton}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
         </Grid>
     </Grid>
 </Page>

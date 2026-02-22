@@ -143,6 +143,40 @@ public sealed class AttemptsViewModel : INotifyPropertyChanged
         await RefreshAsync();
     }
 
+    public async Task BanIpAsync(string ip)
+    {
+        IsBusy = true;
+        ErrorText = string.Empty;
+
+        try
+        {
+            var config = ConfigStore.LoadOrCreate();
+            var token = ApiSecretStore.ReadSecret();
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                ErrorText = "API secret not found. Start the service to generate it.";
+                return;
+            }
+
+            var client = new ApiClient(config, token);
+            await client.BanIpAsync(new ApiClient.BanRequest
+            {
+                Ip = ip,
+                DurationSeconds = config.IpBanDurationSeconds,
+                Permanent = false,
+                Reason = "Manual ban from Attempts"
+            });
+        }
+        catch (System.Exception ex)
+        {
+            ErrorText = $"Failed to ban IP: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)

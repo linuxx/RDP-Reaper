@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{52D91082-6D97-4ECC-9C36-0143AA9C2AE6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RdpReaper.Core", "src\RdpReaper.Core\RdpReaper.Core.csproj", "{209488C7-3871-4E97-A782-C20F3E79ED7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RdpReaper.Service", "src\RdpReaper.Service\RdpReaper.Service.csproj", "{93AB0C3E-059F-44B7-8F97-86D0FB7CA978}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RdpReaper.Gui", "src\RdpReaper.Gui\RdpReaper.Gui.csproj", "{3337E456-A2DB-42C7-A1F7-D3C1984CC209}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{209488C7-3871-4E97-A782-C20F3E79ED7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{209488C7-3871-4E97-A782-C20F3E79ED7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{209488C7-3871-4E97-A782-C20F3E79ED7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{209488C7-3871-4E97-A782-C20F3E79ED7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93AB0C3E-059F-44B7-8F97-86D0FB7CA978}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93AB0C3E-059F-44B7-8F97-86D0FB7CA978}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93AB0C3E-059F-44B7-8F97-86D0FB7CA978}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93AB0C3E-059F-44B7-8F97-86D0FB7CA978}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3337E456-A2DB-42C7-A1F7-D3C1984CC209}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{3337E456-A2DB-42C7-A1F7-D3C1984CC209}.Debug|Any CPU.Build.0 = Debug|x86
+		{3337E456-A2DB-42C7-A1F7-D3C1984CC209}.Release|Any CPU.ActiveCfg = Release|x86
+		{3337E456-A2DB-42C7-A1F7-D3C1984CC209}.Release|Any CPU.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{209488C7-3871-4E97-A782-C20F3E79ED7B} = {52D91082-6D97-4ECC-9C36-0143AA9C2AE6}
+		{93AB0C3E-059F-44B7-8F97-86D0FB7CA978} = {52D91082-6D97-4ECC-9C36-0143AA9C2AE6}
+		{3337E456-A2DB-42C7-A1F7-D3C1984CC209} = {52D91082-6D97-4ECC-9C36-0143AA9C2AE6}
+	EndGlobalSection
+EndGlobal

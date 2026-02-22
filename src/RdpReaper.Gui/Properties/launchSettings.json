@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "RdpReaper.Gui (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "RdpReaper.Gui (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
